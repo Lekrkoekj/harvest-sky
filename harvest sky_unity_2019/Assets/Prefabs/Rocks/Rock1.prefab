@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 4735161845969106556}
   - component: {fileID: 2342382638055000305}
   m_Layer: 0
-  m_Name: Cliff_var1_LOD4
+  m_Name: Rock1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

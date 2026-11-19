@@ -21,7 +21,7 @@ Shader "Vivify/Textured With Lighting"
         {
             Name "FORWARD"
             Tags { "LightMode" = "ForwardBase" }
-            Cull Off
+            Cull Back
 
             CGPROGRAM
             #pragma vertex vert

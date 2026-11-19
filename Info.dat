@@ -8,7 +8,7 @@
   "_songTimeOffset" : 0,
   "_shuffle" : 0,
   "_shufflePeriod" : 0.5,
-  "_previewStartTime" : 12,
+  "_previewStartTime" : 73.1,
   "_previewDuration" : 10,
   "_songFilename" : "song.ogg",
   "_coverImageFilename" : "cover.jpg",
@@ -27,8 +27,8 @@
           "_difficulty" : "ExpertPlus",
           "_difficultyRank" : 9,
           "_beatmapFilename" : "ExpertPlusStandard.dat",
-          "_noteJumpMovementSpeed" : 16,
-          "_noteJumpStartBeatOffset" : 0,
+          "_noteJumpMovementSpeed" : 17,
+          "_noteJumpStartBeatOffset" : -0.625,
           "_beatmapColorSchemeIdx" : 0,
           "_environmentNameIdx" : 0
         }

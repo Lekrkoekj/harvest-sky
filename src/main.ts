@@ -23,7 +23,32 @@ async function doMap(file: rm.DIFFICULTY_NAME, chromaOnly: boolean = false) {
 
     /// ---- { ENVIRONMENT } -----
 
+    rm.environmentRemoval(map, [
+        "RailingFull",
+        "RailingCurveF",
+        "LeftRail",
+        "RightRail",
+        "PlayersPlace",
+        "Clouds",
+        "Waterfall"
+    ], "Contains");
+    rm.environment(map, "Smoke", "Contains").scale = [3, 3, 3]
 
+    rm.setRenderingSettings(map, {
+        qualitySettings: {
+            realtimeReflectionProbes: rm.BOOLEAN.True,
+            shadows: rm.SHADOWS.HardOnly,
+            shadowDistance: 64,
+            shadowResolution: rm.SHADOW_RESOLUTION.High,
+            softParticles: rm.BOOLEAN.True,
+        },
+        beat: 0
+    })
+
+    rm.setCameraProperty(map, 0, { depthTextureMode: ['Depth'] })
+
+    prefabs.environment.instantiate(map, 0);
+    prefabs.skybox.instantiate(map, 0);
 
     /// ---- { EVENTS } -----
 
