@@ -77,6 +77,7 @@ Material:
     - _DstBlend: 0
     - _EdgeFade: 0.03
     - _EnableExternalAlpha: 0
+    - _FarDistance: 150
     - _FresnelBase: 0.5
     - _FresnelPower: 8
     - _GlintBloom: 0.6
@@ -86,7 +87,7 @@ Material:
     - _Glossiness: 0.097
     - _GlossyReflections: 1
     - _MaxBlur: 0.015
-    - _MaxDistance: 200
+    - _MaxDistance: 150
     - _Metallic: 0.511
     - _Mode: 0
     - _NearFadeEnd: 5

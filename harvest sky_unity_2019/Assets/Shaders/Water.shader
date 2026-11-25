@@ -21,7 +21,9 @@ Shader "Vivify/Water"
         _MaxDistance ("Max Ray Distance", Float) = 60
         _Steps ("Ray Steps", Range(8, 128)) = 64
         _Thickness ("Hit Thickness", Float) = 1.5
-        _ThicknessFade ("Thickness Fade Start", Range(0, 1)) = 0.2        _EdgeFade ("Screen Edge Fade", Range(0.001, 0.5)) = 0.05
+        _ThicknessFade ("Thickness Fade Start", Range(0, 1)) = 0.2
+        _EdgeFade ("Screen Edge Fade", Range(0.001, 0.5)) = 0.05
+        _FarDistance ("Far Field Start", Float) = 150
         _ProbeStrength ("Reflection Probe Fallback", Range(0, 1)) = 1
         _ProbeBlur ("Probe Blur", Range(0, 6)) = 2
     }
@@ -83,7 +85,9 @@ Shader "Vivify/Water"
             float _MaxDistance;
             float _Steps;
             float _Thickness;
-            float _ThicknessFade;            float _EdgeFade;
+            float _ThicknessFade;
+            float _EdgeFade;
+            float _FarDistance;
             float _ProbeStrength;
             float _ProbeBlur;
 
@@ -291,11 +295,11 @@ Shader "Vivify/Water"
                     {
                         float2 uv = ClipToDepthUV(skyClip);
                         float2 edge = min(uv, 1 - uv);
-                        if (all(edge > 0) && Linear01Depth(SAMPLE_SCREEN_LOD(_CameraDepthTexture, uv).r) >= 0.999)
+                        if (all(edge > 0) && LinearEyeDepth(SAMPLE_SCREEN_LOD(_CameraDepthTexture, uv).r) >= _FarDistance)
                         {
                             skyMask = saturate(min(edge.x, edge.y) / _EdgeFade);
                             float radius = min(length(uv - ray.uv0) * _Blur, _MaxBlur);
-                            sky = SampleBlurred(uv, ClipToGrabUV(skyClip), _ProjectionParams.z * 0.99, radius, noise * 6.2832);
+                            sky = SampleBlurred(uv, ClipToGrabUV(skyClip), _FarDistance, radius, noise * 6.2832);
                         }
                     }
                 }

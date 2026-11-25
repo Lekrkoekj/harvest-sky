@@ -46,6 +46,15 @@ async function doMap(file: rm.DIFFICULTY_NAME, chromaOnly: boolean = false) {
         return [event.lightID].flat().includes(id);
     }
 
+    // Speeds the fireflies up to `strength`x every `every` beats from start to end (inclusive), easing back to 1x.
+    function fireflyPulses(start: number, end: number, every: number, strength = 3, duration = every * 0.75, easing: rm.EASE = 'easeOutCubic') {
+        for (let i = 0; start + i * every <= end + 0.0001; i++) {
+            rm.setAnimatorProperty(map, start + i * every, environment.id!, [
+                { id: 'FireflySpeed', type: 'Float', value: [[strength, 0], [1, 1, easing]] }
+            ], duration);
+        }
+    }
+
     /// ---- { ENVIRONMENT } -----
 
     rm.environmentRemoval(map, [
@@ -83,7 +92,7 @@ async function doMap(file: rm.DIFFICULTY_NAME, chromaOnly: boolean = false) {
         { id: "_TrackLaneYPosition", type: "Float", value: 0 }
     ])
 
-    prefabs.environment.instantiate(map, 0);
+    const environment = prefabs.environment.instantiate(map, 0);
     prefabs.skybox.instantiate(map, 0);
     prefabs.laserl1.instantiate(map, 0);
     prefabs.laserl2.instantiate(map, 0);
@@ -107,8 +116,6 @@ async function doMap(file: rm.DIFFICULTY_NAME, chromaOnly: boolean = false) {
         ]
     })
 
-    /// ---- { EVENTS } -----
-
     // Cave laser speed setup
     if (!chromaOnly) {
         materials.laserl1.set(map, { _Speed: 0 }, 0);
@@ -130,34 +137,34 @@ async function doMap(file: rm.DIFFICULTY_NAME, chromaOnly: boolean = false) {
     }
 
     // Cave ores brightness setup
-    if(!chromaOnly) {
-        materials.orel1.set(map, {_Brightness: 0}, 0);
-        materials.orel2.set(map, {_Brightness: 0}, 0);
-        materials.orel3.set(map, {_Brightness: 0}, 0);
-        materials.orel4.set(map, {_Brightness: 0}, 0);
-        materials.orel5.set(map, {_Brightness: 0}, 0);
-        materials.orel6.set(map, {_Brightness: 0}, 0);
-        materials.orel7.set(map, {_Brightness: 0}, 0);
-        materials.orel8.set(map, {_Brightness: 0}, 0);
-        materials.orel9.set(map, {_Brightness: 0}, 0);
-        materials.orer1.set(map, {_Brightness: 0}, 0);
-        materials.orer2.set(map, {_Brightness: 0}, 0);
-        materials.orer3.set(map, {_Brightness: 0}, 0);
-        materials.orer4.set(map, {_Brightness: 0}, 0);
-        materials.orer5.set(map, {_Brightness: 0}, 0);
-        materials.orer6.set(map, {_Brightness: 0}, 0);
-        materials.orer7.set(map, {_Brightness: 0}, 0);
-        materials.orer8.set(map, {_Brightness: 0}, 0);
-        materials.orer9.set(map, {_Brightness: 0}, 0);
+    if (!chromaOnly) {
+        materials.orel1.set(map, { _Brightness: 0 }, 0);
+        materials.orel2.set(map, { _Brightness: 0 }, 0);
+        materials.orel3.set(map, { _Brightness: 0 }, 0);
+        materials.orel4.set(map, { _Brightness: 0 }, 0);
+        materials.orel5.set(map, { _Brightness: 0 }, 0);
+        materials.orel6.set(map, { _Brightness: 0 }, 0);
+        materials.orel7.set(map, { _Brightness: 0 }, 0);
+        materials.orel8.set(map, { _Brightness: 0 }, 0);
+        materials.orel9.set(map, { _Brightness: 0 }, 0);
+        materials.orer1.set(map, { _Brightness: 0 }, 0);
+        materials.orer2.set(map, { _Brightness: 0 }, 0);
+        materials.orer3.set(map, { _Brightness: 0 }, 0);
+        materials.orer4.set(map, { _Brightness: 0 }, 0);
+        materials.orer5.set(map, { _Brightness: 0 }, 0);
+        materials.orer6.set(map, { _Brightness: 0 }, 0);
+        materials.orer7.set(map, { _Brightness: 0 }, 0);
+        materials.orer8.set(map, { _Brightness: 0 }, 0);
+        materials.orer9.set(map, { _Brightness: 0 }, 0);
     }
 
     // Material to LightId mapping
     if (!chromaOnly) map.lightEvents.forEach(event => {
         // Left lasers
-        if(event.type == 1 && targetsLight(event, 1)) {
+        if (event.type == 1 && targetsLight(event, 1)) {
             materials.laserl1.set(map, { _Color: getEventColor(event) }, event.beat);
         }
-        if(event.type == 6 && targetsLight(event, 1)) {
+        if (event.type == 6 && targetsLight(event, 1)) {
             materials.laserl2.set(map, { _Color: getEventColor(event) }, event.beat);
         }
         if (event.type == 7 && targetsLight(event, 1)) {
@@ -165,10 +172,10 @@ async function doMap(file: rm.DIFFICULTY_NAME, chromaOnly: boolean = false) {
         }
 
         // Right lasers
-        if(event.type == 1 && targetsLight(event, 2)) {
+        if (event.type == 1 && targetsLight(event, 2)) {
             materials.laserr1.set(map, { _Color: getEventColor(event) }, event.beat);
         }
-        if(event.type == 6 && targetsLight(event, 2)) {
+        if (event.type == 6 && targetsLight(event, 2)) {
             materials.laserr2.set(map, { _Color: getEventColor(event) }, event.beat);
         }
         if (event.type == 7 && targetsLight(event, 2)) {
@@ -176,26 +183,26 @@ async function doMap(file: rm.DIFFICULTY_NAME, chromaOnly: boolean = false) {
         }
 
         // Left ores
-        if(event.type == 10 && targetsLight(event, 1)) materials.orel1.set(map, {_Brightness: getEventColor(event)[3]}, event.beat);
-        if(event.type == 10 && targetsLight(event, 2)) materials.orel2.set(map, {_Brightness: getEventColor(event)[3]}, event.beat);
-        if(event.type == 10 && targetsLight(event, 3)) materials.orel3.set(map, {_Brightness: getEventColor(event)[3]}, event.beat);
-        if(event.type == 10 && targetsLight(event, 4)) materials.orel4.set(map, {_Brightness: getEventColor(event)[3]}, event.beat);
-        if(event.type == 10 && targetsLight(event, 5)) materials.orel5.set(map, {_Brightness: getEventColor(event)[3]}, event.beat);
-        if(event.type == 10 && targetsLight(event, 6)) materials.orel6.set(map, {_Brightness: getEventColor(event)[3]}, event.beat);
-        if(event.type == 10 && targetsLight(event, 7)) materials.orel7.set(map, {_Brightness: getEventColor(event)[3]}, event.beat);
-        if(event.type == 10 && targetsLight(event, 8)) materials.orel8.set(map, {_Brightness: getEventColor(event)[3]}, event.beat);
-        if(event.type == 10 && targetsLight(event, 9)) materials.orel9.set(map, {_Brightness: getEventColor(event)[3]}, event.beat);
+        if (event.type == 10 && targetsLight(event, 1)) materials.orel1.set(map, { _Brightness: getEventColor(event)[3] }, event.beat);
+        if (event.type == 10 && targetsLight(event, 2)) materials.orel2.set(map, { _Brightness: getEventColor(event)[3] }, event.beat);
+        if (event.type == 10 && targetsLight(event, 3)) materials.orel3.set(map, { _Brightness: getEventColor(event)[3] }, event.beat);
+        if (event.type == 10 && targetsLight(event, 4)) materials.orel4.set(map, { _Brightness: getEventColor(event)[3] }, event.beat);
+        if (event.type == 10 && targetsLight(event, 5)) materials.orel5.set(map, { _Brightness: getEventColor(event)[3] }, event.beat);
+        if (event.type == 10 && targetsLight(event, 6)) materials.orel6.set(map, { _Brightness: getEventColor(event)[3] }, event.beat);
+        if (event.type == 10 && targetsLight(event, 7)) materials.orel7.set(map, { _Brightness: getEventColor(event)[3] }, event.beat);
+        if (event.type == 10 && targetsLight(event, 8)) materials.orel8.set(map, { _Brightness: getEventColor(event)[3] }, event.beat);
+        if (event.type == 10 && targetsLight(event, 9)) materials.orel9.set(map, { _Brightness: getEventColor(event)[3] }, event.beat);
 
         // Right ores
-        if(event.type == 11 && targetsLight(event, 1)) materials.orer1.set(map, {_Brightness: getEventColor(event)[3]}, event.beat);
-        if(event.type == 11 && targetsLight(event, 2)) materials.orer2.set(map, {_Brightness: getEventColor(event)[3]}, event.beat);
-        if(event.type == 11 && targetsLight(event, 3)) materials.orer3.set(map, {_Brightness: getEventColor(event)[3]}, event.beat);
-        if(event.type == 11 && targetsLight(event, 4)) materials.orer4.set(map, {_Brightness: getEventColor(event)[3]}, event.beat);
-        if(event.type == 11 && targetsLight(event, 5)) materials.orer5.set(map, {_Brightness: getEventColor(event)[3]}, event.beat);
-        if(event.type == 11 && targetsLight(event, 6)) materials.orer6.set(map, {_Brightness: getEventColor(event)[3]}, event.beat);
-        if(event.type == 11 && targetsLight(event, 7)) materials.orer7.set(map, {_Brightness: getEventColor(event)[3]}, event.beat);
-        if(event.type == 11 && targetsLight(event, 8)) materials.orer8.set(map, {_Brightness: getEventColor(event)[3]}, event.beat);
-        if(event.type == 11 && targetsLight(event, 9)) materials.orer9.set(map, {_Brightness: getEventColor(event)[3]}, event.beat);
+        if (event.type == 11 && targetsLight(event, 1)) materials.orer1.set(map, { _Brightness: getEventColor(event)[3] }, event.beat);
+        if (event.type == 11 && targetsLight(event, 2)) materials.orer2.set(map, { _Brightness: getEventColor(event)[3] }, event.beat);
+        if (event.type == 11 && targetsLight(event, 3)) materials.orer3.set(map, { _Brightness: getEventColor(event)[3] }, event.beat);
+        if (event.type == 11 && targetsLight(event, 4)) materials.orer4.set(map, { _Brightness: getEventColor(event)[3] }, event.beat);
+        if (event.type == 11 && targetsLight(event, 5)) materials.orer5.set(map, { _Brightness: getEventColor(event)[3] }, event.beat);
+        if (event.type == 11 && targetsLight(event, 6)) materials.orer6.set(map, { _Brightness: getEventColor(event)[3] }, event.beat);
+        if (event.type == 11 && targetsLight(event, 7)) materials.orer7.set(map, { _Brightness: getEventColor(event)[3] }, event.beat);
+        if (event.type == 11 && targetsLight(event, 8)) materials.orer8.set(map, { _Brightness: getEventColor(event)[3] }, event.beat);
+        if (event.type == 11 && targetsLight(event, 9)) materials.orer9.set(map, { _Brightness: getEventColor(event)[3] }, event.beat);
     })
 
     // Map laser speed events to laser material speed value
@@ -214,32 +221,20 @@ async function doMap(file: rm.DIFFICULTY_NAME, chromaOnly: boolean = false) {
         }
     })
 
-    /*
-    // Assign all notes to a track
-    if(!chromaOnly) map.allNotes.forEach(note => {
-        note.track.add("allNotes")
-    })
+    /// ---- { EVENTS } -----
 
-    // Apply custom note prefab to all notes
-    if(!chromaOnly) rm.assignObjectPrefab(map, {
-        colorNotes: {
-            track: "allNotes",
-            asset: prefabs.customnote.path,
-            debrisAsset: prefabs.customnotedebris.path,
-            anyDirectionAsset: prefabs.customnotedot.path
-        },
-        chainHeads: {
-            track: "allNotes",
-            asset: prefabs.customchain.path,
-            debrisAsset: prefabs.customchaindebris.path
-        },
-        chainLinks: {
-            track: "allNotes",
-            asset: prefabs.customchainlink.path,
-            debrisAsset: prefabs.customchainlinkdebris.path
-        }
-    })
-        */
+    // Firefly pulses
+    fireflyPulses(165, 227, 1, 3) // Chorus 2
+    fireflyPulses(228, 228, 1, 3, 1.5)// Chorus 2 end
+    fireflyPulses(236, 243, 1, 2) // underscores Verse
+    fireflyPulses(252, 259, 1, 2) // underscores Verse
+    fireflyPulses(292, 292, 1, 4, 2) // Chorus 3 beginning
+    fireflyPulses(296, 296, 1, 4, 2) // Chorus 3 beginning
+    fireflyPulses(300, 356, 1, 4) // Chorus 3
+    fireflyPulses(420, 420, 1, 4, 2) // Chorus 4 beginning
+    fireflyPulses(424, 424, 1, 4, 2) // Chorus 4 beginning
+    fireflyPulses(428, 473, 1, 5) // Chorus 4
+    fireflyPulses(474, 474, 1, 5, 4) // Chorus 4 end
 }
 
 await Promise.all([
