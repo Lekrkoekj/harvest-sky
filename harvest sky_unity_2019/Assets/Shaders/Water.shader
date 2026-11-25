@@ -21,9 +21,9 @@ Shader "Vivify/Water"
         _MaxDistance ("Max Ray Distance", Float) = 60
         _Steps ("Ray Steps", Range(8, 128)) = 64
         _Thickness ("Hit Thickness", Float) = 1.5
-        _ThicknessFade ("Thickness Fade Start", Range(0, 1)) = 0.2
-        _EdgeFade ("Screen Edge Fade", Range(0.001, 0.5)) = 0.05
+        _ThicknessFade ("Thickness Fade Start", Range(0, 1)) = 0.2        _EdgeFade ("Screen Edge Fade", Range(0.001, 0.5)) = 0.05
         _ProbeStrength ("Reflection Probe Fallback", Range(0, 1)) = 1
+        _ProbeBlur ("Probe Blur", Range(0, 6)) = 2
     }
     SubShader
     {
@@ -43,6 +43,7 @@ Shader "Vivify/Water"
             #pragma multi_compile_instancing
 
             #include "UnityCG.cginc"
+            #include "UnityStandardUtils.cginc"
             #include "../VivifyTemplate/Utilities/Shader Functions/Noise.cginc"
 
             #if defined(UNITY_STEREO_INSTANCING_ENABLED)
@@ -82,9 +83,9 @@ Shader "Vivify/Water"
             float _MaxDistance;
             float _Steps;
             float _Thickness;
-            float _ThicknessFade;
-            float _EdgeFade;
+            float _ThicknessFade;            float _EdgeFade;
             float _ProbeStrength;
+            float _ProbeBlur;
 
             v2f vert (appdata v)
             {
@@ -163,17 +164,28 @@ Shader "Vivify/Water"
                 return saturate(min(t.x, t.y));
             }
 
-            fixed4 SampleBlurred(float2 uv, float radius, float rotation)
+            fixed4 SampleBlurred(float2 depthUV, float2 grabUV, float minDepth, float radius, float rotation)
             {
-                fixed4 sum = 0;
+                #if UNITY_UV_STARTS_AT_TOP
+                    float flipY = -_ProjectionParams.x;
+                #else
+                    float flipY = _ProjectionParams.x;
+                #endif
+
+                fixed4 sum = SAMPLE_SCREEN_LOD(_WaterGrabTexture, grabUV);
+                float weight = 1;
+
                 [unroll]
                 for (int k = 0; k < 8; k++)
                 {
                     float a = k * 2.39996 + rotation;
-                    float d = sqrt((k + 0.5) / 8) * radius;
-                    sum += SAMPLE_SCREEN_LOD(_WaterGrabTexture, uv + float2(cos(a), sin(a)) * d);
+                    float2 o = float2(cos(a), sin(a)) * sqrt((k + 0.5) / 8) * radius;
+                    float tapDepth = LinearEyeDepth(SAMPLE_SCREEN_LOD(_CameraDepthTexture, depthUV + o).r);
+                    float w = tapDepth >= minDepth;
+                    sum += SAMPLE_SCREEN_LOD(_WaterGrabTexture, grabUV + float2(o.x, o.y * flipY)) * w;
+                    weight += w;
                 }
-                return sum / 8;
+                return sum / weight;
             }
 
             fixed4 frag (v2f i) : SV_Target
@@ -264,9 +276,9 @@ Shader "Vivify/Water"
                     mask = saturate(min(edge.x, edge.y) / _EdgeFade);
                     mask *= Linear01Depth(rawDepth) < 0.999;
                     mask *= 1 - smoothstep(_Thickness * _ThicknessFade, _Thickness, hitDiff);
-
                     float radius = min(length(uv - ray.uv0) * _Blur, _MaxBlur);
-                    reflection = SampleBlurred(lerp(ray.grab0, ray.grab1, t), radius, noise * 6.2832);
+                    float hitDepth = LinearEyeDepth(rawDepth);
+                    reflection = SampleBlurred(uv, lerp(ray.grab0, ray.grab1, t), hitDepth * 0.9 - 0.2, radius, noise * 6.2832);
                 }
 
                 fixed4 sky = 0;
@@ -283,12 +295,13 @@ Shader "Vivify/Water"
                         {
                             skyMask = saturate(min(edge.x, edge.y) / _EdgeFade);
                             float radius = min(length(uv - ray.uv0) * _Blur, _MaxBlur);
-                            sky = SampleBlurred(ClipToGrabUV(skyClip), radius, noise * 6.2832);
+                            sky = SampleBlurred(uv, ClipToGrabUV(skyClip), _ProjectionParams.z * 0.99, radius, noise * 6.2832);
                         }
                     }
                 }
 
-                float3 probe = DecodeHDR(UNITY_SAMPLE_TEXCUBE(unity_SpecCube0, r), unity_SpecCube0_HDR) * _ProbeStrength;
+                float3 probeDir = BoxProjectedCubemapDirection(r, i.worldPos, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax);
+                float3 probe = DecodeHDR(UNITY_SAMPLE_TEXCUBE_LOD(unity_SpecCube0, probeDir, _ProbeBlur), unity_SpecCube0_HDR) * _ProbeStrength;
                 float3 env = lerp(lerp(probe, sky.rgb, skyMask), reflection.rgb, mask);
                 reflection.a = lerp(sky.a * skyMask, reflection.a, mask);
                 mask = 1;

@@ -11,12 +11,12 @@ Shader "Vivify/Firefly"
     }
     SubShader
     {
-        Tags { "RenderType"="Transparent" "Queue"="Transparent" "IgnoreProjector"="True" }
+        Tags { "RenderType"="Opaque" "Queue"="AlphaTest+49" "IgnoreProjector"="True" }
 
         Pass
         {
             Blend One One
-            ZWrite Off
+            ZWrite On
             Cull Off
 
             CGPROGRAM
@@ -77,7 +77,9 @@ Shader "Vivify/Firefly"
                 float d = length(i.uv);
                 float core = 1 - smoothstep(0, _Core, d);
                 float halo = pow(saturate(1 - d), _Falloff);
-                float intensity = saturate(core + halo) * i.color.a * i.fade * _Brightness;
+                float shape = saturate(core + halo) * i.color.a * i.fade;
+                clip(shape * _Brightness - 0.02);
+                float intensity = shape * _Brightness;
 
                 fixed4 col;
                 col.rgb = i.color.rgb * _Color.rgb * intensity;
